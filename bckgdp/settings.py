@@ -73,20 +73,15 @@ WSGI_APPLICATION = 'bckgdp.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "mssql",
-        "NAME": "bdgdp",
-        "HOST": "IOSIL\\SQLEXPRESS01",
-        "OPTIONS": {
-            "driver": "ODBC Driver 18 for SQL Server",
-            "trusted_connection": "yes",
-            "extra_params": "TrustServerCertificate=yes;",
-        },
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
+
     # set this to False if you want to turn off pyodbc's connection pooling
-DATABASE_CONNECTION_POOLING = False
+#DATABASE_CONNECTION_POOLING = False
 
 
 # Password validation
