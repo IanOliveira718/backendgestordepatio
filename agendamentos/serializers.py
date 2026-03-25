@@ -1,27 +1,52 @@
 from rest_framework import serializers
-from .models import Agendamento
+from .models import Agendamento, PalletDescricao
+
+
+class PalletDescricaoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PalletDescricao
+        fields = ["ordem", "descricao"]
 
 
 class AgendamentoSerializer(serializers.ModelSerializer):
-    id = serializers.CharField(source="pk", read_only=True)
-    date = serializers.DateField(format="%Y-%m-%d")
-    time = serializers.TimeField(format="%H:%M")
+
+    descricoes_pallets = PalletDescricaoSerializer(many=True)
 
     class Meta:
         model = Agendamento
-        fields = ["id", "date", "time", "plate", "driver", "type", "zone", "pallets", "status"]
+        fields = [
+            "id",
+            "date",
+            "time",
+            "plate",
+            "driver",
+            "type",
+            "zone",
+            "pallets",
+            "nota_fiscal",
+            "descricoes_pallets",
+            "status",
+        ]
         read_only_fields = ["id", "status"]
 
-    def validate_type(self, value):
-        if value not in Agendamento.Tipo.values:
-            raise serializers.ValidationError(
-                f"Tipo inválido. Use: {', '.join(Agendamento.Tipo.values)}"
+    def create(self, validated_data):
+        descricoes = validated_data.pop("descricoes_pallets")
+
+        agendamento = Agendamento.objects.create(**validated_data)
+
+        for pallet in descricoes:
+            PalletDescricao.objects.create(
+                agendamento=agendamento,
+                **pallet
             )
-        return value
+
+        return agendamento
 
 
 class AtualizarStatusSerializer(serializers.Serializer):
-    status = serializers.ChoiceField(choices=Agendamento.Status.choices)
+    status = serializers.ChoiceField(
+        choices=Agendamento.Status.choices
+    )
 
 
 class AgendamentoPorPeriodoSerializer(serializers.Serializer):

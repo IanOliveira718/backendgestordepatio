@@ -15,21 +15,34 @@ class Agendamento(models.Model):
 
     plate = models.CharField(max_length=20, verbose_name="Placa")
     driver = models.CharField(max_length=150, verbose_name="Motorista")
+
     type = models.CharField(
         max_length=10,
         choices=Tipo.choices,
         verbose_name="Tipo",
     )
+
     zone = models.CharField(max_length=20, verbose_name="Zona")
+
     date = models.DateField(verbose_name="Data")
     time = models.TimeField(verbose_name="Horário")
-    pallets = models.PositiveIntegerField(verbose_name="Quantidade de Pallets")
+
+    pallets = models.PositiveIntegerField(
+        verbose_name="Quantidade de Pallets"
+    )
+
+    nota_fiscal = models.CharField(
+        max_length=60,
+        verbose_name="Nota Fiscal"
+    )
+
     status = models.CharField(
         max_length=20,
         choices=Status.choices,
         default=Status.AGENDADO,
         verbose_name="Status",
     )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -41,3 +54,32 @@ class Agendamento(models.Model):
 
     def __str__(self):
         return f"{self.plate} – {self.date} {self.time} ({self.type})"
+
+
+class PalletDescricao(models.Model):
+
+    agendamento = models.ForeignKey(
+        Agendamento,
+        on_delete=models.CASCADE,
+        related_name="descricoes_pallets",
+        verbose_name="Agendamento",
+    )
+
+    ordem = models.PositiveSmallIntegerField(
+        verbose_name="Ordem do Pallet"
+    )
+
+    descricao = models.CharField(
+        max_length=255,
+        verbose_name="Descrição"
+    )
+
+    class Meta:
+        db_table = "pallet_descricoes"
+        ordering = ["agendamento", "ordem"]
+        unique_together = ("agendamento", "ordem")
+        verbose_name = "Descrição de Pallet"
+        verbose_name_plural = "Descrições de Pallets"
+
+    def __str__(self):
+        return f"Pallet {self.ordem}"
