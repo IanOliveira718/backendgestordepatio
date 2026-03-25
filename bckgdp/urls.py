@@ -1,23 +1,17 @@
-"""
-URL configuration for bckgdp project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/6.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
 from django.urls import include, path
+from rest_framework_simplejwt.views import TokenRefreshView
+from polls.views_auth import LoginView, RegisterView, MeView
 
 urlpatterns = [
-    path("polls/", include("polls.urls")),
-    path("admin/", admin.site.urls),
+    # Auth — rotas públicas (não exigem token)
+    path('api/auth/login/',    LoginView.as_view(),        name='auth-login'),
+    path('api/auth/register/', RegisterView.as_view(),     name='auth-register'),
+    path('api/auth/refresh/',  TokenRefreshView.as_view(), name='auth-refresh'),
+    path('api/auth/me/',       MeView.as_view(),           name='auth-me'),
+
+    # Agendamentos — protegidos por JWT
+    path('api/agendamentos/', include('agendamentos.urls')),  # ← agora aponta direto para agendamentos
+
+    path('admin/', admin.site.urls),
 ]
