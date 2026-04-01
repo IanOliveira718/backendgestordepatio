@@ -100,8 +100,8 @@ REST_FRAMEWORK = {
 
 # ── JWT ───────────────────────────────────────────────────────────────────────
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME':  timedelta(hours=8),   # token expira em 8h
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),    # refresh válido por 7 dias
+    'ACCESS_TOKEN_LIFETIME':  timedelta(hours=1),   # token expira em 1 hora
+    'REFRESH_TOKEN_LIFETIME': timedelta(minutes=30),    # refresh válido por 30 minutos
     'ROTATE_REFRESH_TOKENS':  True,                 # gera novo refresh a cada uso
     'BLACKLIST_AFTER_ROTATION': False,
     'AUTH_HEADER_TYPES': ('Bearer',),

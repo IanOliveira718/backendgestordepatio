@@ -7,4 +7,5 @@ urlpatterns = [
     path("<int:pk>/status/", views.atualizar_status, name="agendamentos-status"),
     #path("<int:pk>/alterar/", views.alterar, name="agendamentos-alterar"),
     path("<int:pk>/cancelar/", views.cancelar_agendamento, name="agendamentos-cancelar"),
+    path("<int:pk>/", views.agendamento_detail, name="agendamentos-detail"),
 ]

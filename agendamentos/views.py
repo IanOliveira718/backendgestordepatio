@@ -7,7 +7,20 @@ from .serializers import (
     AgendamentoSerializer,
     AtualizarStatusSerializer,
     AgendamentoPorPeriodoSerializer,
+    AgendamentoDetailSerializer
 )
+
+# GET /api/agendamentos/<id>/
+@api_view(["GET"])
+def agendamento_detail(request, pk):
+    try:
+        agendamento = Agendamento.objects.prefetch_related(
+            "descricoes_pallets", "descricoes_volumes"
+        ).get(pk=pk)
+    except Agendamento.DoesNotExist:
+        return Response({"error": "Agendamento não encontrado."}, status=status.HTTP_404_NOT_FOUND)
+
+    return Response(AgendamentoDetailSerializer(agendamento).data)
 
 # Listar do dia / 2. Criar
 # GET  /api/agendamentos/?date=YYYY-MM-DD
