@@ -9,6 +9,8 @@ urlpatterns = [
     path('api/auth/register/', RegisterView.as_view(),     name='auth-register'),
     path('api/auth/refresh/',  TokenRefreshView.as_view(), name='auth-refresh'),
     path('api/auth/me/',       MeView.as_view(),           name='auth-me'),
+    path('api/patios/', include('patio.urls')),
+    path('api/zonas/',  include('patio.zona_urls')),
 
     # Agendamentos — protegidos por JWT
     path('api/agendamentos/', include('agendamentos.urls')),  # ← agora aponta direto para agendamentos

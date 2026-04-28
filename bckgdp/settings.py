@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     # apps
     'polls',
     'agendamentos',
+    'patio',
 ]
 
 MIDDLEWARE = [
