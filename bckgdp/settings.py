@@ -1,13 +1,10 @@
 from pathlib import Path
 from datetime import timedelta
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-s2=9p6a1=nr7v11t5z4$#tqi=2$%fuuo1h7delm&05wsf$*vei'
-
-DEBUG = True
-
-ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -56,10 +53,20 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'bckgdp.wsgi.application'
 
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-...')
+
+DEBUG = False
+
+ALLOWED_HOSTS = ['gestorpatiodev.supabase-fluxos.cloud', 'localhost']
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME', 'postgres'),
+        'USER': os.environ.get('DB_USER', 'postgres'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
 
