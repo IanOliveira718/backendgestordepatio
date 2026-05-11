@@ -39,7 +39,7 @@ def agendamentos_list_create(request):
 def agendamento_detail(request, pk):
     try:
         agendamento = Agendamento.objects.prefetch_related(
-            "descricoes_pallets", "descricoes_volumes", "pallets"
+            "descricoes_pallets", "descricoes_volumes", "pallet_registrados"
         ).get(pk=pk)
     except Agendamento.DoesNotExist:
         return Response({"error": "Agendamento não encontrado."}, status=status.HTTP_404_NOT_FOUND)
