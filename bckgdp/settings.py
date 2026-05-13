@@ -57,7 +57,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-...')
 
 DEBUG = False
 
-ALLOWED_HOSTS = ['gestorpatiodev.supabase-fluxos.cloud', 'localhost',os.environ.get('ALLOWED_HOSTS', 'localhost')]
+ALLOWED_HOSTS = [os.environ.get('ALLOWED_HOSTS', 'localhost')]
 
 DATABASES = {
     'default': {
@@ -65,7 +65,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
 DATABASE_CONNECTION_POOLING = False
 
 AUTH_PASSWORD_VALIDATORS = [
