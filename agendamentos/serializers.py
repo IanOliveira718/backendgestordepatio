@@ -305,68 +305,31 @@ class AgendamentoSerializer(serializers.ModelSerializer):
         return espacos
 
     def create(self, validated_data):
+        tipo_unidade       = validated_data.get("tipo_unidade", Agendamento.TipoUnidade.PALLET)
+        descricoes_pallets = validated_data.pop("descricoes_pallets", [])
+        descricoes_volumes = validated_data.pop("descricoes_volumes", [])
+        zona_nome          = validated_data.get("zone")
+        qtd                = validated_data.get("pallets", 0)
 
-        descricoes_pallets = validated_data.pop(
-            "descricoes_pallets",
-            []
-        )
+        # Salva quem criou o agendamento (usado para filtro do fornecedor)
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            validated_data["criado_por"] = request.user
 
-        descricoes_volumes = validated_data.pop(
-            "descricoes_volumes",
-            []
-        )
-
-        tipo_unidade = validated_data.get(
-            "tipo_unidade",
-            Agendamento.TipoUnidade.PALLET
-        )
-
-        zona_nome = validated_data.get(
-            "zone"
-        )
-
-        qtd = validated_data.get(
-            "pallets",
-            0
-        )
-
-        agendamento = Agendamento.objects.create(
-            **validated_data
-        )
-
-        # ─────────────────────────────────────────────
-        # Cria descrições
-        # ─────────────────────────────────────────────
+        agendamento = Agendamento.objects.create(**validated_data)
 
         if tipo_unidade == Agendamento.TipoUnidade.PALLET:
-
             PalletDescricao.objects.bulk_create([
-                PalletDescricao(
-                    agendamento=agendamento,
-                    **d
-                )
+                PalletDescricao(agendamento=agendamento, **d)
                 for d in descricoes_pallets
             ])
-
         else:
-
             VolumeDescricao.objects.bulk_create([
-                VolumeDescricao(
-                    agendamento=agendamento,
-                    **d
-                )
+                VolumeDescricao(agendamento=agendamento, **d)
                 for d in descricoes_volumes
             ])
 
-        # ─────────────────────────────────────────────
-        # Cria pallets automaticamente
-        # ─────────────────────────────────────────────
-
-        espacos = self._alocar_espacos(
-            zona_nome,
-            qtd
-        )
-
+        espacos = self._alocar_espacos(zona_nome, qtd)
         Pallet.objects.bulk_create([
             Pallet(
                 agendamento=agendamento,
