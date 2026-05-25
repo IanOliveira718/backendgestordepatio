@@ -130,145 +130,73 @@ class AgendamentoSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, data):
+        date         = data.get("date")
+        time         = data.get("time")
+        zone         = data.get("zone")
+        qtd_pallets  = data.get("pallets", 0)
+        tipo_unidade = data.get("tipo_unidade", Agendamento.TipoUnidade.PALLET)
+        descricoes_pallets = data.get("descricoes_pallets", [])
+        descricoes_volumes = data.get("descricoes_volumes", [])
 
-        date = data.get("date")
-        time = data.get("time")
-        zone = data.get("zone")
-
-        qtd_pallets = data.get("pallets", 0)
-
-        tipo_unidade = data.get(
-            "tipo_unidade",
-            Agendamento.TipoUnidade.PALLET
-        )
-
-        descricoes_pallets = data.get(
-            "descricoes_pallets",
-            []
-        )
-
-        descricoes_volumes = data.get(
-            "descricoes_volumes",
-            []
-        )
-
-        # ─────────────────────────────────────────────
-        # 1. Conflito de horário
-        # ─────────────────────────────────────────────
-
+        # ── 1. Conflito de horário exato na mesma zona ────────────────────────
         conflito = Agendamento.objects.filter(
-            date=date,
-            time=time,
-            zone=zone
-        ).exclude(
-            status=Agendamento.Status.CANCELADO
-        )
+            date=date, time=time, zone=zone
+        ).exclude(status=Agendamento.Status.CANCELADO)
 
         if self.instance:
-            conflito = conflito.exclude(
-                pk=self.instance.pk
-            )
+            conflito = conflito.exclude(pk=self.instance.pk)
 
         if conflito.exists():
             raise serializers.ValidationError({
-                "time": (
-                    "Não foi possível agendar, "
-                    "já existe um agendamento nesse horário."
-                )
+                "time": "Não foi possível agendar, já existe um agendamento nesse horário."
             })
 
-        # ─────────────────────────────────────────────
-        # 2. Capacidade da zona
-        # ─────────────────────────────────────────────
+        # ── 2. Capacidade da zona com janela de tempo configurável ────────────
+        try:
+            from patio.models import Zona
+            zona_obj = Zona.objects.get(nome=zone)
 
-        if PATIO_APP_AVAILABLE:
+            from agendamentos.capacidade_validator import verificar_capacidade
+            erro_capacidade = verificar_capacidade(
+                zona_nome=zone,
+                zona_capacidade=zona_obj.capacidade,
+                qtd_pallets=qtd_pallets,
+                data_agendamento=date,
+                hora_agendamento=time,
+                excluir_agendamento_id=self.instance.pk if self.instance else None,
+            )
+            if erro_capacidade:
+                raise serializers.ValidationError({"pallets": erro_capacidade})
 
-            try:
+        except Zona.DoesNotExist:
+            pass  # Zona não cadastrada no app patio — ignora validação de capacidade
 
-                zona_obj = Zona.objects.get(
-                    nome=zone
-                )
-
-                ocupados = Pallet.objects.filter(
-                    zona_nome=zone,
-                    status__in=[
-                        Pallet.Status.PENDENTE,
-                        Pallet.Status.ARMAZENADO,
-                    ],
-                ).count()
-
-                disponiveis = (
-                    zona_obj.capacidade - ocupados
-                )
-
-                if qtd_pallets > disponiveis:
-
-                    raise serializers.ValidationError({
-                        "pallets": (
-                            f"A zona {zone} possui "
-                            f"{disponiveis} espaço(s) disponível(is)."
-                        )
-                    })
-
-            except Zona.DoesNotExist:
-                pass
-
-        # ─────────────────────────────────────────────
-        # 3. Validação descrições
-        # ─────────────────────────────────────────────
-
+        # ── 3. Descrições x quantidade ────────────────────────────────────────
         if tipo_unidade == Agendamento.TipoUnidade.PALLET:
-
             if len(descricoes_pallets) != qtd_pallets:
-
                 raise serializers.ValidationError({
                     "descricoes_pallets": (
-                        f"Informe exatamente "
-                        f"{qtd_pallets} descrição(ões)."
+                        f"Informe exatamente {qtd_pallets} descrição(ões). "
+                        f"Recebido: {len(descricoes_pallets)}."
                     )
                 })
-
-            ordens = sorted([
-                d["ordem"]
-                for d in descricoes_pallets
-            ])
-
-            if ordens != list(
-                range(1, qtd_pallets + 1)
-            ):
-
+            ordens = sorted([d["ordem"] for d in descricoes_pallets])
+            if ordens != list(range(1, qtd_pallets + 1)):
                 raise serializers.ValidationError({
-                    "descricoes_pallets": (
-                        f"As ordens devem ser "
-                        f"de 1 até {qtd_pallets}."
-                    )
+                    "descricoes_pallets": f"As ordens devem ser de 1 a {qtd_pallets} sem repetição."
                 })
-
         elif tipo_unidade == Agendamento.TipoUnidade.VOLUME:
-
             if len(descricoes_volumes) != qtd_pallets:
-
                 raise serializers.ValidationError({
                     "descricoes_volumes": (
-                        f"Informe exatamente "
-                        f"{qtd_pallets} descrição(ões)."
+                        f"Informe exatamente {qtd_pallets} descrição(ões). "
+                        f"Recebido: {len(descricoes_volumes)}."
                     )
                 })
-
-            ordens = sorted([
-                d["ordem"]
-                for d in descricoes_volumes
-            ])
-
-            if ordens != list(
-                range(1, qtd_pallets + 1)
-            ):
-
+            ordens = sorted([d["ordem"] for d in descricoes_volumes])
+            if ordens != list(range(1, qtd_pallets + 1)):
                 raise serializers.ValidationError({
-                    "descricoes_volumes": (
-                        f"As ordens devem ser "
-                        f"de 1 até {qtd_pallets}."
-                    )
+                    "descricoes_volumes": f"As ordens devem ser de 1 a {qtd_pallets} sem repetição."
                 })
 
         return data
