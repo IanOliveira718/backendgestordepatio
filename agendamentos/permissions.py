@@ -6,7 +6,6 @@ Portaria     → ver agendamentos, modificar status de agendamento, ver pallets 
 Recebimento  → ver agendamentos, modificar status de agendamento, ver e modificar status de pallets
 Fornecedor   → criar agendamentos e ver apenas os próprios
 """
-
 from rest_framework.permissions import BasePermission
 
 
@@ -25,7 +24,6 @@ def is_blocked(user):
 
 
 class NaoBloqueado(BasePermission):
-    """Rejeita qualquer usuário com acesso bloqueado."""
     message = "Acesso bloqueado. Entre em contato com o administrador."
 
     def has_permission(self, request, view):
@@ -40,7 +38,6 @@ class IsAdmin(BasePermission):
 
 
 class IsAdminOuPortariaOuRecebimento(BasePermission):
-    """Permite ver agendamentos e modificar status."""
     message = "Sem permissão para esta ação."
 
     def has_permission(self, request, view):
@@ -50,7 +47,6 @@ class IsAdminOuPortariaOuRecebimento(BasePermission):
 
 
 class IsAdminOuRecebimento(BasePermission):
-    """Permite modificar status de pallets."""
     message = "Sem permissão para modificar pallets."
 
     def has_permission(self, request, view):
@@ -60,8 +56,7 @@ class IsAdminOuRecebimento(BasePermission):
 
 
 class IsAdminOuFornecedor(BasePermission):
-    """Permite criar agendamentos."""
-    message = "Sem permissão para criar agendamentos."
+    message = "Sem permissão para esta ação."
 
     def has_permission(self, request, view):
         return request.user.is_authenticated and get_tipo(request.user) in (
