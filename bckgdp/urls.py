@@ -17,5 +17,6 @@ urlpatterns = [
     # Agendamentos — protegidos por JWT
     path('api/agendamentos/', include('agendamentos.urls')),  # ← agora aponta direto para agendamentos
     path('api/users/', include('polls.urls_users')),
+    path('api/fornecedores/', include('polls.urls_fornecedor')),
     path('admin/', admin.site.urls),
 ]
