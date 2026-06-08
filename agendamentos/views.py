@@ -36,7 +36,6 @@ def agendamentos_list_create(request):
 
     if request.method == "GET":
         if tipo == "fornecedor":
-            # Fornecedor vê apenas os próprios
             agendamentos = Agendamento.objects.filter(criado_por=request.user)
         elif tipo in ("administrador", "portaria", "recebimento"):
             date = request.query_params.get("date")
@@ -77,7 +76,6 @@ def agendamento_detail(request, pk):
     except Agendamento.DoesNotExist:
         return Response({"error": "Agendamento não encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
-    # Fornecedor só acessa os próprios
     if tipo == "fornecedor" and agendamento.criado_por != request.user:
         return Response({"error": "Sem permissão."}, status=status.HTTP_403_FORBIDDEN)
 
@@ -128,9 +126,6 @@ def alterar(request, pk):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# DELETE /api/agendamentos/<id>/cancelar/
-# Admin cancela qualquer agendamento.
-# Fornecedor cancela apenas os próprios (desde que não concluídos).
 @api_view(["DELETE"])
 @permission_classes([NaoBloqueado])
 def cancelar_agendamento(request, pk):
@@ -144,7 +139,6 @@ def cancelar_agendamento(request, pk):
     except Agendamento.DoesNotExist:
         return Response({"error": "Agendamento não encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
-    # Fornecedor só cancela os próprios
     if tipo == "fornecedor" and agendamento.criado_por != request.user:
         return Response({"error": "Sem permissão para cancelar este agendamento."}, status=status.HTTP_403_FORBIDDEN)
 
@@ -174,11 +168,38 @@ def agendamentos_por_periodo(request):
     return Response(AgendamentoListSerializer(agendamentos, many=True).data)
 
 
+# GET /api/agendamentos/meus/?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD
+# Acessível por admin e fornecedor.
+# Admin vê todos no período. Fornecedor vê apenas os próprios.
+@api_view(["GET"])
+@permission_classes([NaoBloqueado])
+def meus_agendamentos(request):
+    tipo = get_tipo(request.user)
+
+    if tipo not in ("administrador", "fornecedor"):
+        return Response(
+            {"error": "Sem permissão para acessar este endpoint."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    serializer = AgendamentoPorPeriodoSerializer(data=request.query_params)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    start = serializer.validated_data["start_date"]
+    end   = serializer.validated_data["end_date"]
+
+    agendamentos = Agendamento.objects.filter(date__range=(start, end))
+
+    # Fornecedor filtra apenas os próprios
+    if tipo == "fornecedor":
+        agendamentos = agendamentos.filter(criado_por=request.user)
+
+    return Response(AgendamentoListSerializer(agendamentos, many=True).data)
+
+
 # ── Pallets ───────────────────────────────────────────────────────────────────
 
-# GET /api/agendamentos/pallets/
-# Admin, portaria e recebimento veem todos os pallets.
-# Fornecedor vê apenas pallets dos próprios agendamentos.
 @api_view(["GET"])
 @permission_classes([NaoBloqueado])
 def pallet_list(request):
@@ -190,7 +211,6 @@ def pallet_list(request):
     pallets = Pallet.objects.select_related("agendamento").all()
 
     if tipo == "fornecedor":
-        # Restringe aos agendamentos criados pelo próprio fornecedor
         pallets = pallets.filter(agendamento__criado_por=request.user)
 
     zona        = request.query_params.get("zona")
@@ -204,8 +224,6 @@ def pallet_list(request):
     return Response(PalletSerializer(pallets, many=True).data)
 
 
-# PATCH /api/agendamentos/pallets/<id>/status/
-# Admin e recebimento modificam status. Fornecedor não pode.
 @api_view(["PATCH"])
 @permission_classes([NaoBloqueado, IsAdminOuRecebimento])
 def pallet_atualizar_status(request, pk):

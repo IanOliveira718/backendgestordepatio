@@ -11,13 +11,13 @@ Regra:
 
 from datetime import datetime, timedelta
 from django.db.models import Q, Sum
-
+from typing import Optional
 
 def verificar_capacidade(zona_nome: str, zona_capacidade: int,
                           qtd_pallets: int,
                           data_agendamento,   # date
                           hora_agendamento,   # time
-                          excluir_agendamento_id=None) -> str | None:
+                          excluir_agendamento_id=None) -> Optional[str]:
     """
     Retorna mensagem de erro se não houver capacidade, ou None se OK.
     """
