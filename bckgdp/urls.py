@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import include, path
 from rest_framework_simplejwt.views import TokenRefreshView
-from polls.views_auth import LoginView, RegisterView, MeView
+from bckgdp.views_auth import LoginView, RegisterView, MeView
 from agendamentos.views_configuracao import configuracao_view
 
 urlpatterns = [
