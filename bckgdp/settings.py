@@ -4,8 +4,6 @@ import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-s2=9p6a1=nr7v11t5z4$#tqi=2$%fuuo1h7delm&05wsf$*vei'
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
