@@ -55,7 +55,7 @@ WSGI_APPLICATION = 'bckgdp.wsgi.application'
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-...')
 
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost').split(',')
 
