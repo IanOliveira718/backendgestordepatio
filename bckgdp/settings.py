@@ -57,7 +57,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-...')
 
 DEBUG = False
 
-ALLOWED_HOSTS = [os.environ.get('ALLOWED_HOSTS', 'localhost')]
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost').split(',')
 
 #DATABASES = {
 #    'default': {
