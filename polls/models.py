@@ -40,8 +40,12 @@ class UserProfile(models.Model):
         PORTARIA      = "portaria",      "Portaria"
         RECEBIMENTO   = "recebimento",   "Recebimento"
         FORNECEDOR    = "fornecedor",    "Fornecedor"
+        MEIOAMBIENTE  = "meio_ambiente", "Meio Ambiente"
+        COLABORADOR   = "colaborador",   "Colaborador"
 
     HIERARQUIA = {
+        "colaborador":   6,
+        "meio_ambiente": 5,
         "administrador": 4,
         "portaria":      3,
         "recebimento":   2,
