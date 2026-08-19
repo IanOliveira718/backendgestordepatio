@@ -69,6 +69,10 @@ class Agendamento(models.Model):
         verbose_name="Quantidade de Unidades"
     )
 
+    urgente = models.PositiveIntegerField(
+        verbose_name="Urgente"
+    )
+
     nota_fiscal = models.CharField(
         max_length=60,
         verbose_name="Nota Fiscal"

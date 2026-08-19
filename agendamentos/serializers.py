@@ -9,6 +9,12 @@ except ImportError:
     PATIO_APP_AVAILABLE = False
 
 
+def get_tipo(user):
+    try:
+        return user.profile.tipo
+    except Exception:
+        return None
+
 class PalletDescricaoSerializer(serializers.ModelSerializer):
     class Meta:
         model = PalletDescricao
@@ -117,6 +123,7 @@ class AgendamentoSerializer(serializers.ModelSerializer):
             "type",
             "zone",
             "pallets",
+            "urgente",
             "nota_fiscal",
             "tipo_unidade",
             "descricoes_pallets",
@@ -130,14 +137,16 @@ class AgendamentoSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, data):
-        date         = data.get("date")
-        time         = data.get("time")
-        zone         = data.get("zone")
-        qtd_pallets  = data.get("pallets", 0)
-        tipo_unidade = data.get("tipo_unidade", Agendamento.TipoUnidade.PALLET)
+        date               = data.get("date")
+        time               = data.get("time")
+        zone               = data.get("zone")
+        qtd_pallets        = data.get("pallets", 0)
+        urgente            = data.get("urgente")
+        tipo_unidade       = data.get("tipo_unidade", Agendamento.TipoUnidade.PALLET)
         descricoes_pallets = data.get("descricoes_pallets", [])
         descricoes_volumes = data.get("descricoes_volumes", [])
-
+        request = self.context.get("request")
+        
         # ── 1. Conflito de horário exato na mesma zona ────────────────────────
         conflito = Agendamento.objects.filter(
             date=date, time=time, zone=zone
@@ -150,6 +159,10 @@ class AgendamentoSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 "time": "Não foi possível agendar, já existe um agendamento nesse horário."
             })
+
+        if urgente == 1:
+            if not(request.user.is_authenticated and (get_tipo(request.user) in ("administrador","colaborador","meio_ambiente"))):
+                raise serializers.ValidationError({"time": "Não foi possível agendar, você não pode fazer agendamentos urgentes."})
 
         # ── 2. Capacidade da zona com janela de tempo configurável ────────────
         try:
@@ -238,6 +251,7 @@ class AgendamentoSerializer(serializers.ModelSerializer):
         descricoes_volumes = validated_data.pop("descricoes_volumes", [])
         zona_nome          = validated_data.get("zone")
         qtd                = validated_data.get("pallets", 0)
+        urgente            = validated_data.get("urgente")
 
         # Salva quem criou o agendamento (usado para filtro do fornecedor)
         request = self.context.get("request")
@@ -300,6 +314,7 @@ class AgendamentoListSerializer(serializers.ModelSerializer):
             "type",
             "zone",
             "pallets",
+            "urgente",
             "nota_fiscal",
             "tipo_unidade",
             "status",
@@ -357,6 +372,7 @@ class AgendamentoDetailSerializer(
             "type",
             "zone",
             "pallets",
+            "urgente",
             "nota_fiscal",
             "tipo_unidade",
             "descricoes_pallets",

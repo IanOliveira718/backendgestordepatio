@@ -18,6 +18,7 @@ class Migration(migrations.Migration):
                 ("date", models.DateField(verbose_name="Data")),
                 ("time", models.TimeField(verbose_name="Horário")),
                 ("pallets", models.PositiveIntegerField(verbose_name="Quantidade de Pallets")),
+                ("urgente", models.PositiveIntegerField(verbose_name="Urgente")),
                 ("status", models.CharField(
                     choices=[("agendado", "Agendado"), ("confirmado", "Confirmado"), ("em_andamento", "Em Andamento"), ("concluido", "Concluído"), ("cancelado", "Cancelado")],
                     default="agendado", max_length=20, verbose_name="Status",

@@ -62,3 +62,11 @@ class IsAdminOuFornecedor(BasePermission):
         return request.user.is_authenticated and get_tipo(request.user) in (
             "administrador", "fornecedor"
         )
+
+class IsAdminMeioAmbienteOuColaborador(BasePermission):
+    message = "Sem permissão para esta ação."
+
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and get_tipo(request.user) in (
+            "administrador","colaborador","meio_ambiente"
+        )
