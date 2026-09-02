@@ -44,9 +44,9 @@ class UserProfile(models.Model):
         COLABORADOR   = "colaborador",   "Colaborador"
 
     HIERARQUIA = {
-        "colaborador":   6,
+        "administrador": 6,
         "meio_ambiente": 5,
-        "administrador": 4,
+        "colaborador":   4,
         "portaria":      3,
         "recebimento":   2,
         "fornecedor":    1,
