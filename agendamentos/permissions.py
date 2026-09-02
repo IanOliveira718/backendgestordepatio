@@ -42,7 +42,7 @@ class IsAdminOuPortariaOuRecebimento(BasePermission):
 
     def has_permission(self, request, view):
         return request.user.is_authenticated and get_tipo(request.user) in (
-            "administrador", "portaria", "recebimento"
+            "administrador", "portaria", "recebimento","meio_ambiente"
         )
 
 

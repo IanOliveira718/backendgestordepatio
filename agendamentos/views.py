@@ -17,6 +17,7 @@ from agendamentos.permissions import (
     IsAdmin,
     IsAdminOuPortariaOuRecebimento,
     IsAdminOuRecebimento,
+    IsAdminMeioAmbienteOuColaborador
 )
 
 
@@ -30,14 +31,14 @@ def get_tipo(user):
 # ── Agendamentos ──────────────────────────────────────────────────────────────
 
 @api_view(["GET", "POST"])
-@permission_classes([NaoBloqueado])
+@permission_classes([NaoBloqueado, IsAdminMeioAmbienteOuColaborador])
 def agendamentos_list_create(request):
     tipo = get_tipo(request.user)
 
     if request.method == "GET":
         if tipo == "fornecedor":
             agendamentos = Agendamento.objects.filter(criado_por=request.user)
-        elif tipo in ("administrador", "portaria", "recebimento"):
+        elif tipo in ("administrador", "portaria", "recebimento","meio_ambiente"):
             date = request.query_params.get("date")
             if not date:
                 return Response(
@@ -51,7 +52,7 @@ def agendamentos_list_create(request):
         return Response(AgendamentoListSerializer(agendamentos, many=True).data)
 
     # POST — admin e fornecedor
-    if tipo not in ("administrador", "fornecedor"):
+    if tipo not in ("administrador", "fornecedor", "colaborador", "meio_ambiente"):
         return Response(
             {"error": "Sem permissão para criar agendamentos."},
             status=status.HTTP_403_FORBIDDEN,
@@ -156,7 +157,7 @@ def cancelar_agendamento(request, pk):
 
 
 @api_view(["GET"])
-@permission_classes([NaoBloqueado, IsAdminOuPortariaOuRecebimento])
+@permission_classes([NaoBloqueado, IsAdminOuPortariaOuRecebimento, IsAdminMeioAmbienteOuColaborador])
 def agendamentos_por_periodo(request):
     serializer = AgendamentoPorPeriodoSerializer(data=request.query_params)
     if not serializer.is_valid():
@@ -176,7 +177,7 @@ def agendamentos_por_periodo(request):
 def meus_agendamentos(request):
     tipo = get_tipo(request.user)
 
-    if tipo not in ("administrador", "fornecedor"):
+    if tipo not in ("administrador", "fornecedor","meio_ambiente"):
         return Response(
             {"error": "Sem permissão para acessar este endpoint."},
             status=status.HTTP_403_FORBIDDEN,
@@ -205,7 +206,7 @@ def meus_agendamentos(request):
 def pallet_list(request):
     tipo = get_tipo(request.user)
 
-    if tipo not in ("administrador", "portaria", "recebimento", "fornecedor"):
+    if tipo not in ("administrador", "portaria", "recebimento", "fornecedor","meio_ambiente"):
         return Response({"error": "Sem permissão."}, status=status.HTTP_403_FORBIDDEN)
 
     pallets = Pallet.objects.select_related("agendamento").all()
